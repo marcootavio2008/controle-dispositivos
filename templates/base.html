@@ -1,0 +1,37 @@
+﻿<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Aurora{% endblock %}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
+    <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='android-chrome-512x512.png') }}">
+
+</head>
+<body>
+
+    <header class="main-header">
+        <button class="menu-toggle" aria-label="Abrir menu lateral">☰</button>
+        <h1>{% block page_title %}Aurora{% endblock %}</h1>
+    </header>
+
+    <div class="sidebar-menu">
+        <button class="close-btn" aria-label="Fechar menu lateral">×</button>
+        <ul>
+            <li><a href="https://aurora-dashboard-3txq.onrender.com/dashboard">Início</a></li>
+            <li><a href="https://aurora-dashboard-3txq.onrender.com/casa">Monitoramento</a></li>
+            <li><a href="{{ url_for('home') }}">Dash Residencial</a></li>
+            <li><a href="#">Contato</a></li>
+        </ul>
+    </div>
+
+    <div class="main-content">
+        {% block content %}{% endblock %}
+    </div>
+
+    {% block scripts %}{% endblock %}
+
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+</body>
+</html>
