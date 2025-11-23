@@ -7,9 +7,19 @@
 {% block content %}
 <h2>Controle de Luz</h2>
 <label class="switch">
-<input type="checkbox" onchange="fetch('/ativar')">
-<span class="slider"></span>
+  <input type="checkbox" onchange="toggleLight(this)">
+  <span class="slider"></span>
 </label>
+
+<script>
+function toggleLight(checkbox) {
+    if (checkbox.checked) {
+        fetch('/controle_luz?acao=ligar');
+    } else {
+        fetch('/controle_luz?acao=desligar');
+    }
+}
+</script>
 
 
 <h2>Controle TV</h2>
