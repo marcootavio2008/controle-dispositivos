@@ -7,7 +7,6 @@ sock = Sock(app)
 # Lista de conexões WebSocket ativas
 connections = []
 
-
 @sock.route('/ws')
 def ws_endpoint(ws):
     connections.append(ws)
@@ -15,17 +14,14 @@ def ws_endpoint(ws):
 
     try:
         while True:
-            msg = ws.receive()
+            msg = ws.receive(timeout=1)   # <<< NÃO BLOQUEIA
             if msg:
                 print("Mensagem recebida:", msg)
-
-    except Exception as e:
-        print("PC desconectado:", e)
-
+    except:
+        print("PC desconectado")
     finally:
         if ws in connections:
             connections.remove(ws)
-        print("Conexão removida.")
 
 
 @app.route("/controle_luz")
