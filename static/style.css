@@ -1,5 +1,5 @@
 body {
-    background: #0a0a0a;
+    background: #000;
     color: #fff;
     font-family: Arial, sans-serif;
     margin: 0;
@@ -35,7 +35,7 @@ body {
 }
 
 .messages {
-    height: 400px;
+    height: 70vh;
     overflow-y: auto;
     background: #1a1a1a;
     padding: 10px;
@@ -63,6 +63,7 @@ input {
     margin: 0;
     text-align: center;
     flex-grow: 1;
+    color: #7B3FF2;
 }
 
 /* Estilos do botão de hambúrguer */
@@ -71,7 +72,7 @@ input {
     background: none;
     border: none;
     cursor: pointer;
-    color: white;
+    color: #9370db;
 }
 
 /* --- Estilos do Menu Lateral --- */
@@ -85,12 +86,14 @@ input {
     background-color: #111;
     overflow-x: hidden;
     transition: 0.5s;
-    padding-top: 60px;}
+    padding-top: 60px;
+    color: green;}
 
 /* Lista de links do menu */
 .sidebar-menu ul {
     list-style-type: none;
     text-align: center;
+    color: green;
 }
 
 .sidebar-menu a {
@@ -115,7 +118,7 @@ input {
     font-size: 36px;
     background: none;
     border: none;
-    color: #f1f1f1;
+    color: #9370db;
     cursor: pointer;
 }
 
