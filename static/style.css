@@ -2,7 +2,7 @@
    BASE GLOBAL
 ========================= */
 body {
-    background: radial-gradient(circle at top, #0f0f1a, #050507);
+    background: linear-gradient(180deg, #0b0b12 0%, #07070c 100%);
     color: #eaeaea;
     font-family: 'Inter', 'Poppins', Arial, sans-serif;
     margin: 0;
