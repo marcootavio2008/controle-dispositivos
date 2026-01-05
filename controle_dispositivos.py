@@ -1,8 +1,33 @@
 from flask import Flask, render_template, request, jsonify
 from flask_sock import Sock
+from flask_sqlalchemy import SQLAlchemy
+import os
+from sqlalchemy.dialects.postgresql import JSONB
 
 app = Flask(__name__)
 sock = Sock(app)
+
+
+app.config["SQLALCHEMY_DATABASE_URI"] = os.environ.get("DATABASE_URL")
+app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
+
+db = SQLAlchemy(app)
+
+class Device(db.Model):
+    __tablename__ = "devices"
+
+    id = db.Column(db.Integer, primary_key=True)
+
+    # futuramente: user_id
+    name = db.Column(db.String(100), nullable=False)
+
+    device_type = db.Column(db.String(30), nullable=False)  # lan | arduino | tuya
+    trigger_type = db.Column(db.String(30), nullable=False)
+
+    config = db.Column(JSONB, nullable=False)
+
+with app.app_context():
+    db.create_all()
 
 # Lista de conexões WebSocket ativas
 connections = []
