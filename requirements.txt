@@ -2,3 +2,5 @@ flask
 flask_sock
 Gunicorn
 gevent
+Flask-SQLAlchemy
+psycopg2-binary
