@@ -24,9 +24,6 @@ class Device(db.Model):
 with app.app_context():
     db.create_all()
 
-# Lista de conexões WebSocket ativas
-connections = []
-
 def get_current_user():
     if "user_id" not in session:
         return None
@@ -36,60 +33,77 @@ def get_current_user():
         "role": session.get("role", "user")
     }
 
+connections = {}  # { user_id: ws }
+
 @sock.route('/ws')
 def ws_endpoint(ws):
-    # Adiciona conexão ativa
-    connections.append(ws)
-    print("[WS] Cliente conectado")
+    user_id = request.args.get("user_id")
+
+    if not user_id:
+        ws.close()
+        return
+
+    user_id = int(user_id)
+    connections[user_id] = ws
+
+    print(f"[WS] PC conectado | user_id={user_id}")
 
     try:
         while True:
             msg = ws.receive()
             if msg is None:
-                break  # Conexão fechada
-            print("[WS] Mensagem recebida:", msg)
+                break
+            print(f"[WS] Msg de {user_id}: {msg}")
 
     except Exception as e:
-        print("[WS] Erro na conexão:", e)
+        print("[WS] Erro:", e)
 
     finally:
-        if ws in connections:
-            connections.remove(ws)
-        print("[WS] Cliente desconectado")
+        connections.pop(user_id, None)
+        print(f"[WS] PC desconectado | user_id={user_id}")
 
 
-def enviar_comando(comando):
-    """Envia comando a todas as conexões ativas."""
-    print(f"[CMD] Enviando comando: {comando}")
-    removals = []
-    
-    for pc in connections:
-        try:
-            pc.send(comando)
-        except:
-            removals.append(pc)
+def enviar_comando_para_usuario(user_id, comando):
+    ws = connections.get(user_id)
 
-    # Remove conexões com problema
-    for pc in removals:
-        if pc in connections:
-            connections.remove(pc)
-            print("[WS] Conexão removida por erro")
+    if not ws:
+        print(f"[WS] Nenhum PC conectado para user {user_id}")
+        return False
+
+    try:
+        ws.send(comando)
+        print(f"[CMD] {comando} enviado para user {user_id}")
+        return True
+
+    except Exception as e:
+        print("[WS] Erro ao enviar comando:", e)
+        connections.pop(user_id, None)
+        return False
 
 
 @app.route("/controle_luz")
 def controle_luz():
+    user = get_current_user()
+    if not user:
+        return jsonify({"error": "não autenticado"}), 401
+
     acao = request.args.get("acao")
 
     if acao == "ligar":
-        enviar_comando("LIGAR_LUZ")
-        return jsonify({"status": "luz ligada"})
+        ok = enviar_comando_para_usuario(
+            user["id"],
+            "LIGAR_LUZ"
+        )
+        return jsonify({"status": ok})
 
     elif acao == "desligar":
-        enviar_comando("DESLIGAR_LUZ")
-        return jsonify({"status": "luz desligada"})
+        ok = enviar_comando_para_usuario(
+            user["id"],
+            "DESLIGAR_LUZ"
+        )
+        return jsonify({"status": ok})
 
-    return jsonify({"erro": "comando inválido"}), 400
-
+    return jsonify({"error": "ação inválida"}), 400
 
 @app.route('/add_dispositivo')
 def add_dispositivo():
