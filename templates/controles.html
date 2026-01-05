@@ -20,6 +20,16 @@ function toggleLight(checkbox) {
     }
 }
 
+document.addEventListener('DOMContentLoaded', () => {
+    const btn = document.getElementById('add-disp');
+
+    if (btn) {
+        btn.addEventListener('click', () => {
+            window.location.href = "/add_dispositivo";
+        });
+    }
+});
+
 </script>
 
 
