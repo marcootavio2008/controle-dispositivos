@@ -28,7 +28,37 @@ Adicionar dispositivo
 </button>
 </div>
 
+{% for d in devices %}
+<div class="device-card">
+    <h3>{{ d.name }}</h3>
+
+    <button onclick="toggleDevice({{ d.id }})">Ligar / Desligar</button>
+
+    <button class="danger" onclick="deleteDevice({{ d.id }})">
+        🗑 Remover
+    </button>
+</div>
+{% endfor %}
+
 <script>
+
+function deleteDevice(deviceId) {
+    if (!confirm("Deseja remover este dispositivo?")) return;
+
+    fetch(`/api/devices/${deviceId}`, {
+        method: "DELETE"
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (data.status) {
+            alert("Dispositivo removido");
+            location.reload();
+        } else {
+            alert(data.error || "Erro ao remover");
+        }
+    });
+}
+
 function toggleDevice(checkbox, id) {
     fetch(`/device/${id}/toggle`, { method: 'POST' });
 }
