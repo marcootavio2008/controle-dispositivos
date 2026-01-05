@@ -22,7 +22,10 @@
 </div>
 
 <div style="margin-top: 30px;">
-    <button class="add-disp">Adicionar dispositivo</button>
+<button class="add-disp"
+onclick="window.location.href='/add_dispositivo?user_id={{ user.id }}&role={{ user.role }}'">
+Adicionar dispositivo
+</button>
 </div>
 
 <script>
