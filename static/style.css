@@ -310,13 +310,14 @@ body::before {
 
 .selector {
     flex: 1;
-    background: #111;
+    background: #222;
     padding: 10px;
     border-radius: 10px;
     cursor: pointer;
     text-align: center;
     transition: 0.3s;
-    border: 1px solid transparent;
+    color: white;
+    border: 1px solid white;
 }
 
 .selector input {
