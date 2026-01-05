@@ -109,8 +109,8 @@ def save_device():
 
 @app.route('/')
 def home():
-    return render_template('controles.html')
-
+    devices = Device.query.all()
+    return render_template('controles.html', devices=devices)
 
 if __name__ == "__main__":
     app.run(host='0.0.0.0', port=8000)
