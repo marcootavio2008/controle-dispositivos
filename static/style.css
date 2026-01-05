@@ -247,6 +247,7 @@ body::before {
 #add-disp{
     position: fixed;
     bottom: 0;
+    left: 50%;
     background: linear-gradient(135deg, #7B3FF2, #9F6BFF);
     color: white;
     border: none;
