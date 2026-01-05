@@ -19,8 +19,3 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 });
-
-document.getElementById("add-disp").addEventListener("click", () => {
-    window.location.href = "/add-dispositivo";
-});
-
