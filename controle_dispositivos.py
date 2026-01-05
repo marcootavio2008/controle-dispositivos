@@ -2,11 +2,12 @@ from flask import Flask, render_template, request, jsonify
 from flask_sock import Sock
 from flask_sqlalchemy import SQLAlchemy
 import os
+from flask import session
 from sqlalchemy.dialects.postgresql import JSONB
 
 app = Flask(__name__)
 sock = Sock(app)
-
+app.secret_key = "controle123"
 
 app.config["SQLALCHEMY_DATABASE_URI"] = os.environ.get("DATABASE_URL")
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
@@ -27,15 +28,12 @@ with app.app_context():
 connections = []
 
 def get_current_user():
-    user_id = request.args.get("user_id")
-    role = request.args.get("role", "user")
-
-    if not user_id:
+    if "user_id" not in session:
         return None
 
     return {
-        "id": int(user_id),
-        "role": role
+        "id": session["user_id"],
+        "role": session.get("role", "user")
     }
 
 @sock.route('/ws')
@@ -122,23 +120,34 @@ def save_device():
 
     return jsonify({"status": "ok"})
 
+
+
 @app.route('/')
 def home():
-    user = get_current_user()
-    if not user:
+    user_id = request.args.get("user_id")
+    role = request.args.get("role", "user")
+
+    if user_id:
+        session["user_id"] = int(user_id)
+        session["role"] = role
+
+    if "user_id" not in session:
         return "Usuário não identificado", 401
 
-    if user["role"] == "admin":
+    if session["role"] == "admin":
         devices = Device.query.all()
     else:
         devices = Device.query.filter_by(
-            user_id=user["id"]
+            user_id=session["user_id"]
         ).all()
 
     return render_template(
         'controles.html',
         devices=devices,
-        user=user
+        user={
+            "id": session["user_id"],
+            "role": session["role"]
+        }
     )
 
 if __name__ == "__main__":
