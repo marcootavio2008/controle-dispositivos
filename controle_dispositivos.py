@@ -134,7 +134,33 @@ def save_device():
 
     return jsonify({"status": "ok"})
 
+@app.route("/device/<int:device_id>/toggle", methods=["POST"])
+def toggle_device(device_id):
+    user = get_current_user()
+    if not user:
+        return jsonify({"error": "usuário não identificado"}), 401
 
+    device = Device.query.get(device_id)
+
+    if not device:
+        return jsonify({"error": "dispositivo não encontrado"}), 404
+
+    # 🔒 segurança: só dono ou admin
+    if user["role"] != "admin" and device.user_id != user["id"]:
+        return jsonify({"error": "acesso negado"}), 403
+
+    # 🔌 comando enviado ao PC
+    comando = {
+        "action": "toggle",
+        "device_id": device.id,
+        "name": device.name,
+        "type": device.device_type,
+        "config": device.config
+    }
+
+    enviar_comando(json.dumps(comando))
+
+    return jsonify({"status": "ok"})
 
 @app.route('/')
 def home():
