@@ -158,7 +158,7 @@ def toggle_device(device_id):
         "config": device.config
     }
 
-    enviar_comando(json.dumps(comando))
+    enviar_comando_para_usuario(json.dumps(comando))
 
     return jsonify({"status": "ok"})
 
