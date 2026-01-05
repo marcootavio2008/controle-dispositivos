@@ -4,19 +4,17 @@
 {% block content %}
 
 <div class="devices-grid">
-
     {% for device in devices %}
-        <div class="device-card">
-            <h3>{{ device.name }}</h3>
+        <div class="device-actions">
+    <label class="switch">
+        <input type="checkbox" onchange="toggleDevice({{ d.id }}, this)">
+        <span class="slider"></span>
+    </label>
 
-            <div class="hud-line"></div>
-
-            <label class="switch">
-                <input type="checkbox"
-                    onchange="toggleDevice(this, {{ device.id }})">
-                <span class="slider"></span>
-            </label>
-        </div>
+    <button class="btn-delete" onclick="deleteDevice({{ d.id }})">
+        Excluir
+    </button>
+</div>
     {% endfor %}
 
 </div>
@@ -28,17 +26,6 @@ Adicionar dispositivo
 </button>
 </div>
 
-{% for d in devices %}
-<div class="device-card">
-    <h3>{{ d.name }}</h3>
-
-    <button onclick="toggleDevice({{ d.id }})">Ligar / Desligar</button>
-
-    <button class="danger" onclick="deleteDevice({{ d.id }})">
-        🗑 Remover
-    </button>
-</div>
-{% endfor %}
 
 <script>
 
