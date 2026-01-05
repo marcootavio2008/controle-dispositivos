@@ -14,33 +14,21 @@
         <input 
             type="text" 
             placeholder="Ex: Lâmpada da Mesa"
-            id="device-name"
-        >
+            id="device-name">
     </div>
 
     <!-- Tipo de acionamento -->
-    <div class="field">
-        <label>Tipo de acionamento</label>
+    
+    <label for="acao">Acionamento:</label>
+    <select id="acao" name="acao">
+        <option value="lan">LAN</option>
+        <option value="arduino">Arduino</option>
+        <option value="tuya">Lâmpada wifi</option>
+    </select>
 
-        <div class="selector-group">
-            <label class="selector">
-                <input type="radio" name="trigger" value="toggle">
-                <span>On / Off</span>
-            </label>
 
-            <label class="selector">
-                <input type="radio" name="trigger" value="momentary">
-                <span>Momentâneo</span>
-            </label>
-
-            <label class="selector">
-                <input type="radio" name="trigger" value="slider">
-                <span>Nível / Intensidade</span>
-            </label>
-        </div>
-    </div>
-
-    <button class="confirm-btn">Adicionar</button>
+</div>
+    <button class="add-btn">Adicionar</button>
 </div>
 
 
