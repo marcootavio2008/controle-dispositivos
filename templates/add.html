@@ -69,5 +69,41 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 });
+
+
+document.querySelector('.add-btn').addEventListener('click', () => {
+    const name = document.getElementById('device-name').value;
+    const type = document.getElementById('device-type').value;
+
+    let config = {};
+
+    if (type === "lan") {
+        config.mac = document.querySelector('#config-lan input').value;
+    }
+
+    if (type === "arduino") {
+        const inputs = document.querySelectorAll('#config-arduino input');
+        config.port = inputs[0].value;
+        config.pin = inputs[1].value;
+    }
+
+    if (type === "tuya") {
+        config.ip = document.querySelector('#config-tuya input').value;
+    }
+
+    fetch('/api/devices', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({
+            name,
+            device_type: type,
+            trigger: "toggle",
+            config
+        })
+    }).then(res => res.json())
+      .then(() => window.location.href = "/");
+});
+
+
 </script>
 {% endblock %}
