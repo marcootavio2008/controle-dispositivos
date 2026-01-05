@@ -3,21 +3,22 @@
 {% block page_title %}Residência{% endblock %}
 {% block content %}
 
-<div class="devices-grid">
-    {% for device in devices %}
+{% for d in devices %}
+    <div class="device-card">
+        <h3>{{ d.name }}</h3>
+
         <div class="device-actions">
-    <label class="switch">
-        <input type="checkbox" onchange="toggleDevice({{ d.id }}, this)">
-        <span class="slider"></span>
-    </label>
+            <label class="switch">
+                <input type="checkbox" onchange="toggleDevice({{ d.id }}, this)">
+                <span class="slider"></span>
+            </label>
 
-    <button class="btn-delete" onclick="deleteDevice({{ d.id }})">
-        Excluir
-    </button>
-</div>
-    {% endfor %}
-
-</div>
+            <button class="btn-delete" onclick="deleteDevice({{ d.id }})">
+                Excluir
+            </button>
+        </div>
+    </div>
+{% endfor %}
 
 <div style="margin-top: 30px;">
 <button class="add-disp"
