@@ -1,23 +1,39 @@
 {% extends "base.html" %}
-
 {% block title %}Dash Residencial{% endblock %}
-
 {% block page_title %}Residência{% endblock %}
-
 {% block content %}
-<h2>Controle de Luz</h2>
-<label class="switch">
-  <input type="checkbox" onchange="toggleLight(this)">
-  <span class="slider"></span>
-</label>
+
+<div class="devices-grid">
+
+    {% for device in devices %}
+        <div class="device-card">
+            <h3>{{ device.name }}</h3>
+
+            <div class="hud-line"></div>
+
+            <p class="device-type">
+                {{ device.device_type | upper }}
+            </p>
+
+            {% if device.trigger_type == "toggle" %}
+                <label class="switch">
+                    <input type="checkbox"
+                        onchange="toggleDevice(this, {{ device.id }})">
+                    <span class="slider"></span>
+                </label>
+            {% endif %}
+        </div>
+    {% endfor %}
+
+</div>
+
+<div style="margin-top: 30px;">
+    <button class="add-disp">Adicionar dispositivo</button>
+</div>
 
 <script>
-function toggleLight(checkbox) {
-    if (checkbox.checked) {
-        fetch('/controle_luz?acao=ligar');
-    } else {
-        fetch('/controle_luz?acao=desligar');
-    }
+function toggleDevice(checkbox, id) {
+    fetch(`/device/${id}/toggle`, { method: 'POST' });
 }
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -29,19 +45,6 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 });
-
 </script>
-
-
-<h2>Controle TV</h2>
-<label class="switch">
-<input type="checkbox" onchange="">
-<span class="slider"></span>
-</label>
-
-<div>
-<button class="add-disp" href="{{url_for('add_dispositivo')}}">
-    Adicionar dispositivo</button> 
-</div>
 
 {% endblock %}
