@@ -4,6 +4,7 @@ from flask_sqlalchemy import SQLAlchemy
 import os
 from flask import session
 from sqlalchemy.dialects.postgresql import JSONB
+import json
 
 app = Flask(__name__)
 sock = Sock(app)
