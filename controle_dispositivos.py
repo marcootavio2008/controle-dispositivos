@@ -35,6 +35,7 @@ def get_current_user():
 
 connections = {}  # { user_id: ws }
 
+
 @sock.route('/ws')
 def ws_endpoint(ws):
     user_id = request.args.get("user_id")
@@ -53,33 +54,25 @@ def ws_endpoint(ws):
             msg = ws.receive()
             if msg is None:
                 break
-            print(f"[WS] Msg de {user_id}: {msg}")
-
-    except Exception as e:
-        print("[WS] Erro:", e)
-
     finally:
         connections.pop(user_id, None)
         print(f"[WS] PC desconectado | user_id={user_id}")
 
 
-def enviar_comando_para_usuario(user_id, comando):
+def enviar_comando(user_id, comando):
     ws = connections.get(user_id)
 
     if not ws:
-        print(f"[WS] Nenhum PC conectado para user {user_id}")
+        print(f"[WS] Nenhum PC conectado para user_id={user_id}")
         return False
 
     try:
         ws.send(comando)
-        print(f"[CMD] {comando} enviado para user {user_id}")
+        print(f"[CMD] Enviado para user_id={user_id}")
         return True
-
-    except Exception as e:
-        print("[WS] Erro ao enviar comando:", e)
+    except:
         connections.pop(user_id, None)
         return False
-
 
 @app.route("/controle_luz")
 def controle_luz():
@@ -141,24 +134,23 @@ def toggle_device(device_id):
         return jsonify({"error": "usuário não identificado"}), 401
 
     device = Device.query.get(device_id)
-
     if not device:
         return jsonify({"error": "dispositivo não encontrado"}), 404
 
-    # 🔒 segurança: só dono ou admin
     if user["role"] != "admin" and device.user_id != user["id"]:
         return jsonify({"error": "acesso negado"}), 403
 
-    # 🔌 comando enviado ao PC
-    comando = {
+    comando = json.dumps({
         "action": "toggle",
         "device_id": device.id,
-        "name": device.name,
         "type": device.device_type,
         "config": device.config
-    }
+    })
 
-    enviar_comando_para_usuario(json.dumps(comando))
+    ok = enviar_comando(user["id"], comando)
+
+    if not ok:
+        return jsonify({"error": "PC offline"}), 503
 
     return jsonify({"status": "ok"})
 
