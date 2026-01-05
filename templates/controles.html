@@ -4,20 +4,22 @@
 {% block content %}
 
 {% for d in devices %}
-    <div class="device-card">
-        <h3>{{ d.name }}</h3>
+<div class="device-card">
+    <h3>{{ d.name }}</h3>
 
-        <div class="device-actions">
-            <label class="switch">
-                <input type="checkbox" onchange="toggleDevice({{ d.id }}, this)">
-                <span class="slider"></span>
-            </label>
+    <div class="device-actions">
+        <label class="switch">
+            <input type="checkbox"
+                   onchange="toggleDevice({{ d.id }}, this)">
+            <span class="slider"></span>
+        </label>
 
-            <button class="btn-delete" onclick="deleteDevice({{ d.id }})">
-                Excluir
-            </button>
-        </div>
+        <button class="btn-delete"
+                onclick="deleteDevice({{ d.id }})">
+            Excluir
+        </button>
     </div>
+</div>
 {% endfor %}
 
 <div style="margin-top: 30px;">
@@ -29,37 +31,40 @@ Adicionar dispositivo
 
 
 <script>
+function toggleDevice(deviceId, checkbox) {
+    const action = checkbox.checked ? "ligar" : "desligar";
 
-function deleteDevice(deviceId) {
-    if (!confirm("Deseja remover este dispositivo?")) return;
-
-    fetch(`/api/devices/${deviceId}`, {
-        method: "DELETE"
+    fetch(`/device/${deviceId}/toggle`, {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ action })
     })
-    .then(r => r.json())
+    .then(res => {
+        if (!res.ok) throw new Error("Erro ao enviar comando");
+        return res.json();
+    })
     .then(data => {
-        if (data.status) {
-            alert("Dispositivo removido");
-            location.reload();
-        } else {
-            alert(data.error || "Erro ao remover");
-        }
+        console.log("OK:", data);
+    })
+    .catch(err => {
+        console.error(err);
+        checkbox.checked = !checkbox.checked; // desfaz visualmente
     });
 }
 
-function toggleDevice(checkbox, id) {
-    fetch(`/device/${id}/toggle`, { method: 'POST' });
+function deleteDevice(deviceId) {
+    if (!confirm("Excluir este dispositivo?")) return;
+
+    fetch(`/device/${deviceId}`, {
+        method: "DELETE"
+    })
+    .then(res => {
+        if (!res.ok) throw new Error("Erro ao excluir");
+        location.reload();
+    });
 }
-
-document.addEventListener('DOMContentLoaded', () => {
-    const btn = document.querySelector('.add-disp');
-
-    if (btn) {
-        btn.addEventListener('click', () => {
-            window.location.href = "/add_dispositivo";
-        });
-    }
-});
 </script>
 
 {% endblock %}
