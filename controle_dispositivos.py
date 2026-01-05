@@ -14,17 +14,11 @@ app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 db = SQLAlchemy(app)
 
 class Device(db.Model):
-    __tablename__ = "devices"
-
     id = db.Column(db.Integer, primary_key=True)
-
-    # futuramente: user_id
-    name = db.Column(db.String(100), nullable=False)
-
-    device_type = db.Column(db.String(30), nullable=False)  # lan | arduino | tuya
-    trigger_type = db.Column(db.String(30), nullable=False)
-
-    config = db.Column(JSONB, nullable=False)
+    name = db.Column(db.String(120), nullable=False)
+    device_type = db.Column(db.String(20), nullable=False)
+    config = db.Column(db.JSON, nullable=False)
+    user_id = db.Column(db.Integer, nullable=False)
 
 with app.app_context():
     db.create_all()
@@ -32,6 +26,17 @@ with app.app_context():
 # Lista de conexões WebSocket ativas
 connections = []
 
+def get_current_user():
+    user_id = request.args.get("user_id")
+    role = request.args.get("role", "user")
+
+    if not user_id:
+        return None
+
+    return {
+        "id": int(user_id),
+        "role": role
+    }
 
 @sock.route('/ws')
 def ws_endpoint(ws):
