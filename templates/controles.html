@@ -11,17 +11,11 @@
 
             <div class="hud-line"></div>
 
-            <p class="device-type">
-                {{ device.device_type | upper }}
-            </p>
-
-            {% if device.trigger_type == "toggle" %}
-                <label class="switch">
-                    <input type="checkbox"
-                        onchange="toggleDevice(this, {{ device.id }})">
-                    <span class="slider"></span>
-                </label>
-            {% endif %}
+            <label class="switch">
+                <input type="checkbox"
+                    onchange="toggleDevice(this, {{ device.id }})">
+                <span class="slider"></span>
+            </label>
         </div>
     {% endfor %}
 
