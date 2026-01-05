@@ -245,13 +245,14 @@ body::before {
     z-index: 0;
 }
 #add_disp{
-    background: linear-gradient(135deg, #2ecc71, #27ae60);
+    background: linear-gradient(135deg, #7B3FF2, #9F6BFF);
     color: white;
     border: none;
-    padding: 12px 14px;
-    margin: 5px;
-    border-radius: 10px;
+    padding: 14px 22px;
+    margin: 6px;
+    border-radius: 14px;
     cursor: pointer;
     font-weight: 500;
-    box-shadow: 0 0 10px rgba(46, 204, 113, 0.6);
+    box-shadow: 0 0 15px rgba(123, 63, 242, 0.4);
+}
 }
