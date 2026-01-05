@@ -62,6 +62,10 @@ def controle_luz():
 
     return jsonify({"erro": "comando inválido"}), 400
 
+@app.route('/add_dispositivo')
+def add_dispositivo():
+    return render_template('add.html')
+
 
 @app.route('/')
 def home():
