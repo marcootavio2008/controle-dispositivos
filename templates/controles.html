@@ -20,10 +20,6 @@ function toggleLight(checkbox) {
     }
 }
 
-document.getElementById("add-disp").addEventListener("click", () => {
-    window.location.href = "/add_dispositivo";
-});
-
 </script>
 
 
@@ -34,7 +30,9 @@ document.getElementById("add-disp").addEventListener("click", () => {
 </label>
 
 <div>
-<button id="add-disp">ADICIONAR DISPOSITIVOS</button> 
+<button id="add-disp"><a href="{{ url_for('add_dispositivo') }}">
+    Adicionar dispositivo
+</a></button> 
 </div>
 
 {% endblock %}
