@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+{% block title %}Dash Residencial{% endblock %}
+{% block page_title %} + dispositivos{% endblock %}
+{% block content %}
+
+<div class="add-device-container">
+    <h2>Adicionar Dispositivo</h2>
+
+    <div class="hud-line"></div>
+
+    <!-- Nome do dispositivo -->
+    <div class="field">
+        <label>Nome do dispositivo</label>
+        <input 
+            type="text" 
+            placeholder="Ex: Lâmpada da Mesa"
+            id="device-name"
+        >
+    </div>
+
+    <!-- Tipo de acionamento -->
+    <div class="field">
+        <label>Tipo de acionamento</label>
+
+        <div class="selector-group">
+            <label class="selector">
+                <input type="radio" name="trigger" value="toggle">
+                <span>On / Off</span>
+            </label>
+
+            <label class="selector">
+                <input type="radio" name="trigger" value="momentary">
+                <span>Momentâneo</span>
+            </label>
+
+            <label class="selector">
+                <input type="radio" name="trigger" value="slider">
+                <span>Nível / Intensidade</span>
+            </label>
+        </div>
+    </div>
+
+    <button class="confirm-btn">Adicionar</button>
+</div>
+
+
+
+{% endblock %}
