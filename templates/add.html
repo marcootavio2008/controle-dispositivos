@@ -54,6 +54,20 @@
     <button class="add-btn">Adicionar</button>
 </div>
 
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    const select = document.getElementById('device-type');
+    const configs = document.querySelectorAll('.device-config');
 
+    select.addEventListener('change', () => {
+        configs.forEach(c => c.style.display = 'none');
 
+        const selected = select.value;
+        if (selected) {
+            const active = document.getElementById(`config-${selected}`);
+            if (active) active.style.display = 'block';
+        }
+    });
+});
+</script>
 {% endblock %}
