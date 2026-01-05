@@ -98,13 +98,17 @@ def add_dispositivo():
 
 @app.route('/api/devices', methods=['POST'])
 def save_device():
+    user = get_current_user()
+    if not user:
+        return jsonify({"error": "usuário não identificado"}), 401
+
     data = request.json
 
     device = Device(
         name=data["name"],
         device_type=data["device_type"],
-        trigger_type=data["trigger"],
-        config=data["config"]
+        config=data["config"],
+        user_id=user["id"]
     )
 
     db.session.add(device)
@@ -114,8 +118,22 @@ def save_device():
 
 @app.route('/')
 def home():
-    devices = Device.query.all()
-    return render_template('controles.html', devices=devices)
+    user = get_current_user()
+    if not user:
+        return "Usuário não identificado", 401
+
+    if user["role"] == "admin":
+        devices = Device.query.all()
+    else:
+        devices = Device.query.filter_by(
+            user_id=user["id"]
+        ).all()
+
+    return render_template(
+        'controles.html',
+        devices=devices,
+        user=user
+    )
 
 if __name__ == "__main__":
     app.run(host='0.0.0.0', port=8000)
