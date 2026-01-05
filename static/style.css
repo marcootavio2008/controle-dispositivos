@@ -244,10 +244,12 @@ body::before {
     pointer-events: none;
     z-index: 0;
 }
-#add-disp{
+#add-disp {
     position: fixed;
-    bottom: 0;
+    bottom: 12px;
     left: 50%;
+    transform: translateX(-50%);
+
     background: linear-gradient(135deg, #7B3FF2, #9F6BFF);
     color: white;
     border: none;
@@ -258,4 +260,3 @@ body::before {
     font-weight: 500;
     box-shadow: 0 0 15px rgba(123, 63, 242, 0.4);
 }
-
