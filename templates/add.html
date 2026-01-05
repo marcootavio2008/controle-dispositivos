@@ -19,13 +19,36 @@
 
     <!-- Tipo de acionamento -->
     
-    <label for="acao">Acionamento:</label>
-    <select id="acao" name="acao" class="selector">
+    <div class="field">
+    <label>Tipo de dispositivo</label>
+    <select id="device-type" class="select">
+        <option value="">Selecione...</option>
         <option value="lan">LAN</option>
         <option value="arduino">Arduino</option>
         <option value="tuya">Lâmpada wifi</option>
     </select>
+</div>
 
+<!-- LAN -->
+<div class="field device-config" id="config-lan">
+    <label>Endereço MAC</label>
+    <input type="text" placeholder="AA:BB:CC:DD:EE:FF">
+</div>
+
+<!-- Arduino -->
+<div class="field device-config" id="config-arduino">
+    <label>Porta COM</label>
+    <input type="text" placeholder="COM3">
+
+    <label>Pino</label>
+    <input type="number" placeholder="13">
+</div>
+
+<!-- Tuya -->
+<div class="field device-config" id="config-tuya">
+    <label>IP do dispositivo</label>
+    <input type="text" placeholder="192.168.0.50">
+</div>
 
 </div>
     <button class="add-btn">Adicionar</button>
