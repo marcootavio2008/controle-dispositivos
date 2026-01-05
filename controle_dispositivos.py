@@ -91,6 +91,21 @@ def controle_luz():
 def add_dispositivo():
     return render_template('add.html')
 
+@app.route('/api/devices', methods=['POST'])
+def save_device():
+    data = request.json
+
+    device = Device(
+        name=data["name"],
+        device_type=data["device_type"],
+        trigger_type=data["trigger"],
+        config=data["config"]
+    )
+
+    db.session.add(device)
+    db.session.commit()
+
+    return jsonify({"status": "ok"})
 
 @app.route('/')
 def home():
