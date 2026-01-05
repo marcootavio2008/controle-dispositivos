@@ -260,3 +260,79 @@ body::before {
     font-weight: 500;
     box-shadow: 0 0 15px rgba(123, 63, 242, 0.4);
 }
+
+.add-device-container {
+    max-width: 420px;
+    margin: 40px auto;
+    padding: 24px;
+
+    background: rgba(20,20,20,0.85);
+    border-radius: 16px;
+    box-shadow: 0 0 25px rgba(123,63,242,0.15);
+}
+
+.add-device-container h2 {
+    color: #7B3FF2;
+    margin-bottom: 10px;
+}
+
+.field {
+    margin: 20px 0;
+    text-align: left;
+}
+
+.field label {
+    display: block;
+    font-size: 14px;
+    color: #aaa;
+    margin-bottom: 6px;
+}
+
+.field input[type="text"] {
+    width: 100%;
+    padding: 12px;
+    border-radius: 8px;
+    border: none;
+    outline: none;
+    background: #111;
+    color: white;
+}
+
+.field input::placeholder {
+    color: #555;
+}
+
+.selector-group {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.selector {
+    flex: 1;
+    background: #111;
+    padding: 10px;
+    border-radius: 10px;
+    cursor: pointer;
+    text-align: center;
+    transition: 0.3s;
+    border: 1px solid transparent;
+}
+
+.selector input {
+    display: none;
+}
+
+.selector span {
+    font-size: 14px;
+    color: #ccc;
+}
+
+.selector:hover {
+    border-color: #7B3FF2;
+}
+
+.selector input:checked + span {
+    color: #fff;
+    text-shadow: 0 0 6px rgba(123,63,242,0.8);
+}
