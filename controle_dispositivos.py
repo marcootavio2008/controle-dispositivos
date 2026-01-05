@@ -92,9 +92,15 @@ def controle_luz():
 
     return jsonify({"erro": "comando inválido"}), 400
 
+
 @app.route('/add_dispositivo')
 def add_dispositivo():
-    return render_template('add.html')
+    user = get_current_user()
+    if not user:
+        return "Usuário não identificado", 401
+
+    return render_template("add.html", user=user)
+
 
 @app.route('/api/devices', methods=['POST'])
 def save_device():
