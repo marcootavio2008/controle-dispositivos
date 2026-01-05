@@ -244,3 +244,14 @@ body::before {
     pointer-events: none;
     z-index: 0;
 }
+#add_disp{
+    background: linear-gradient(135deg, #2ecc71, #27ae60);
+    color: white;
+    border: none;
+    padding: 12px 14px;
+    margin: 5px;
+    border-radius: 10px;
+    cursor: pointer;
+    font-weight: 500;
+    box-shadow: 0 0 10px rgba(46, 204, 113, 0.6);
+}
