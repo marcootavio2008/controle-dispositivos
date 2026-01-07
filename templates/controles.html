@@ -2,30 +2,25 @@
 {% block title %}Dash Residencial{% endblock %}
 {% block page_title %}Residência{% endblock %}
 {% block content %}
-<style>
-button {
-    padding: 10px 18px;
-    margin: 5px;
-}
-.on {
-    background: #00c853;
-    color: white;
-}
-</style>
-{% for d in devices %}
-<div>
-    <b>{{ d.name }}</b>
-    <button id="btn-{{ d.id }}" onclick="toggle({{ d.id }})">
-        Desligado
-    </button>
 
-    <button class="btn-delete" onclick="deleteDevice({{ d.id }})">
-        Excluir
-    </button>
-    
+{% for d in devices %}
+<div class="device-card">
+    <h3>{{ d.name }}</h3>
+
+    <div class="device-actions">
+        <label class="switch">
+            <input type="checkbox"
+                   onchange="toggleDevice({{ d.id }}, this)">
+            <span class="slider"></span>
+        </label>
+
+        <button class="btn-delete"
+                onclick="deleteDevice({{ d.id }})">
+            Excluir
+        </button>
+    </div>
 </div>
 {% endfor %}
-
 
 <div style="margin-top: 30px;">
 <button class="add-disp"
@@ -34,50 +29,42 @@ Adicionar dispositivo
 </button>
 </div>
 
+
 <script>
-const params = new URLSearchParams(window.location.search)
-const house_id = params.get("house_id")
-const user_id = params.get("user_id")
+function toggleDevice(deviceId, checkbox) {
+    const action = checkbox.checked ? "ligar" : "desligar";
 
-async function toggle(id) {
-    const res = await fetch(
-        `/device/${id}/toggle?house_id=${house_id}&user_id=${user_id}`,
-        { method: "POST" }
-    )
+    const params = new URLSearchParams(window.location.search);
 
-    const data = await res.json()
-
-    const btn = document.getElementById("btn-" + id)
-
-    if (data.state) {
-        btn.classList.add("on")
-        btn.innerText = "Ligado"
-    } else {
-        btn.classList.remove("on")
-        btn.innerText = "Desligado"
-    }
-}
-
-async function toggle(id) {
-    const res = await fetch(`/device/${id}/toggle?house_id=${house_id}`, {
-        method: "POST"
+    fetch(`/device/${deviceId}/toggle?${params.toString()}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action })
     })
-
-    const data = await res.json()
-
-    const btn = document.getElementById("btn-" + id)
-
-    if (data.state) {
-        btn.classList.add("on")
-        btn.innerText = "Ligado"
-    } else {
-        btn.classList.remove("on")
-        btn.innerText = "Desligado"
-    }
+    .then(res => {
+        if (!res.ok) throw new Error("Erro ao enviar comando");
+        return res.json();
+    })
+    .catch(err => {
+        console.error(err);
+        checkbox.checked = !checkbox.checked;
+    });
 }
 
-carregarEstados()
-</script>
+function deleteDevice(deviceId) {
+    if (!confirm("Excluir este dispositivo?")) return;
 
+    const params = new URLSearchParams(window.location.search);
+
+    fetch(`/api/devices/${deviceId}?${params.toString()}`, {
+        method: "DELETE"
+    })
+    .then(res => {
+        if (!res.ok) throw new Error("Erro ao excluir");
+        location.reload();
+    });
+}
+
+</script>
 
 {% endblock %}
