@@ -172,14 +172,15 @@ def create_house():
 
 @app.route("/api/devices", methods=["POST"])
 def save_device():
-    data = request.json
+    user = get_current_user()
+
     device = Device(
-    name=data["name"],
-    device_type=data["device_type"],
-    config=data["config"],
-    user_id=user["id"],
-    house_id=data["house_id"]
-)
+        name=data["name"],
+        device_type=data["device_type"],
+        config=data["config"],
+        house_id=session["house_id"]
+    )
+
     db.session.add(device)
     db.session.commit()
     return jsonify({"status": "ok"})
