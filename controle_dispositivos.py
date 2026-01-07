@@ -17,13 +17,32 @@ db = SQLAlchemy(app)
 # MODELOS
 # ===============================
 
-class Device(db.Model):
+class User(db.Model):
+    __tablename__ = "users"
+
     id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(100), nullable=False)
+    username = db.Column(db.String(80), unique=True, nullable=False)
+    password = db.Column(db.String(120), nullable=False)
+    role = db.Column(db.String(20), default="user")
+    
+class House(db.Model):
+    __tablename__ = "houses"
+
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(120), nullable=False)
+    owner_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False)
+
+class Device(db.Model):
+    __tablename__ = "devices"
+
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(120), nullable=False)
     device_type = db.Column(db.String(50), nullable=False)
-    config = db.Column(JSONB)
-    house_id = db.Column(db.Integer, nullable=False)
-    user_id = db.Column(db.Integer, nullable=False)
+    config = db.Column(db.JSON, nullable=False)
+    house_id = db.Column(db.Integer, db.ForeignKey("houses.id"), nullable=False)
+
+with app.app_context():
+    db.create_all()
 
 
 # ===============================
@@ -101,10 +120,8 @@ def home():
     if not ctx:
         return "Contexto inválido", 400
 
-    _, house_id = ctx
-
+    house_id = ctx
     devices = Device.query.filter_by(house_id=house_id).all()
-
     return render_template(
         "controles.html",
         devices=devices,
