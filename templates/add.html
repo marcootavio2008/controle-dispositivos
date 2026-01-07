@@ -57,7 +57,6 @@
 </div>
     <button class="add-btn">Adicionar</button>
 </div>
-
 <script>
 document.addEventListener('DOMContentLoaded', () => {
 
@@ -76,17 +75,16 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // ===== ADICIONAR DISPOSITIVO =====
-    addBtn.addEventListener('click', () => {
+    // ===== BOTÃO ADICIONAR =====
+    addBtn.addEventListener('click', (e) => {
+        e.preventDefault(); // evita submit de form
 
         const name = document.getElementById('device-name').value.trim();
         const type = document.getElementById('device-type').value;
+        const house_id = document.getElementById("house_id")?.value;
 
-        const user_id = document.getElementById("user_id").value;
-        const house_id = document.getElementById("house_id").value;
-
-        if (!name || !type || !user_id || !house_id) {
-            alert("Preencha todos os campos obrigatórios");
+        if (!name || !type || !house_id) {
+            alert("Preencha nome, tipo e casa");
             return;
         }
 
@@ -94,7 +92,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (type === "lan") {
             const mac = document.querySelector('#config-lan input').value.trim();
-            if (!mac) return alert("Informe o MAC address");
+            if (!mac) return alert("Informe o MAC");
             config.mac = mac;
         }
 
@@ -102,16 +100,14 @@ document.addEventListener('DOMContentLoaded', () => {
             const inputs = document.querySelectorAll('#config-arduino input');
             const port = inputs[0].value.trim();
             const pin = inputs[1].value.trim();
-
-            if (!port || !pin) return alert("Informe porta e pino do Arduino");
-
+            if (!port || !pin) return alert("Informe porta e pino");
             config.port = port;
             config.pin = pin;
         }
 
         if (type === "tuya") {
             const ip = document.querySelector('#config-tuya input').value.trim();
-            if (!ip) return alert("Informe o IP do dispositivo");
+            if (!ip) return alert("Informe o IP");
             config.ip = ip;
         }
 
@@ -119,17 +115,16 @@ document.addEventListener('DOMContentLoaded', () => {
             method: 'POST',
             headers: {'Content-Type': 'application/json'},
             body: JSON.stringify({
-                user_id,
-                house_id,
                 name,
                 device_type: type,
+                house_id,
                 config
             })
         })
         .then(res => res.json())
         .then(data => {
             if (data.error) {
-                alert("Erro: " + data.error);
+                alert(data.error);
             } else {
                 window.location.href = "/";
             }
@@ -138,11 +133,10 @@ document.addEventListener('DOMContentLoaded', () => {
             console.error(err);
             alert("Erro ao salvar dispositivo");
         });
-
     });
 
 });
-
 </script>
+
 
 {% endblock %}
