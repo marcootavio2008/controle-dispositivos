@@ -5,6 +5,9 @@
 
 <div class="add-device-container">
     <h2>Adicionar Dispositivo</h2>
+    <input type="hidden" id="user_id" value="{{ user_id }}">
+    <input type="hidden" id="house_id" value="{{ house_id }}">
+
 
     <div class="hud-line"></div>
 
@@ -57,9 +60,12 @@
 
 <script>
 document.addEventListener('DOMContentLoaded', () => {
+
     const select = document.getElementById('device-type');
     const configs = document.querySelectorAll('.device-config');
+    const addBtn = document.querySelector('.add-btn');
 
+    // ===== MOSTRAR CONFIG PELO TIPO =====
     select.addEventListener('change', () => {
         configs.forEach(c => c.style.display = 'none');
 
@@ -69,47 +75,74 @@ document.addEventListener('DOMContentLoaded', () => {
             if (active) active.style.display = 'block';
         }
     });
-});
 
-document.querySelector('.add-btn').addEventListener('click', () => {
-    const name = document.getElementById('device-name').value;
-    const type = document.getElementById('device-type').value;
-    const house_id = document.getElementById("house_id").value;
+    // ===== ADICIONAR DISPOSITIVO =====
+    addBtn.addEventListener('click', () => {
 
-    if (!name || !type || !house_id) {
-        alert("Preencha nome, tipo e casa");
-        return;
-    }
+        const name = document.getElementById('device-name').value.trim();
+        const type = document.getElementById('device-type').value;
 
-    let config = {};
+        const user_id = document.getElementById("user_id").value;
+        const house_id = document.getElementById("house_id").value;
 
-    if (type === "lan") {
-        config.mac = document.querySelector('#config-lan input').value;
-    }
+        if (!name || !type || !user_id || !house_id) {
+            alert("Preencha todos os campos obrigatórios");
+            return;
+        }
 
-    if (type === "arduino") {
-        const inputs = document.querySelectorAll('#config-arduino input');
-        config.port = inputs[0].value;
-        config.pin = inputs[1].value;
-    }
+        let config = {};
 
-    if (type === "tuya") {
-        config.ip = document.querySelector('#config-tuya input').value;
-    }
+        if (type === "lan") {
+            const mac = document.querySelector('#config-lan input').value.trim();
+            if (!mac) return alert("Informe o MAC address");
+            config.mac = mac;
+        }
 
-    fetch('/api/devices', {
-        method: 'POST',
-        headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({
-            name,
-            device_type: type,
-            house_id,
-            config
+        if (type === "arduino") {
+            const inputs = document.querySelectorAll('#config-arduino input');
+            const port = inputs[0].value.trim();
+            const pin = inputs[1].value.trim();
+
+            if (!port || !pin) return alert("Informe porta e pino do Arduino");
+
+            config.port = port;
+            config.pin = pin;
+        }
+
+        if (type === "tuya") {
+            const ip = document.querySelector('#config-tuya input').value.trim();
+            if (!ip) return alert("Informe o IP do dispositivo");
+            config.ip = ip;
+        }
+
+        fetch('/api/devices', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({
+                user_id,
+                house_id,
+                name,
+                device_type: type,
+                config
+            })
         })
-    })
-    .then(res => res.json())
-    .then(() => window.location.href = "/");
+        .then(res => res.json())
+        .then(data => {
+            if (data.error) {
+                alert("Erro: " + data.error);
+            } else {
+                window.location.href = "/";
+            }
+        })
+        .catch(err => {
+            console.error(err);
+            alert("Erro ao salvar dispositivo");
+        });
+
+    });
+
 });
+
 </script>
 
 {% endblock %}
