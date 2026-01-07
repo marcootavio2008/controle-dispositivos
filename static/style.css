@@ -200,10 +200,10 @@ input::placeholder {
 .slider {
     position: absolute;
     cursor: pointer;
-    top: 0;
+    top: -7px;
     left: 0;
     right: 0;
-    bottom: 0;
+    bottom: 7px;
     background-color: #444;
     transition: .4s;
     border-radius: 34px;
