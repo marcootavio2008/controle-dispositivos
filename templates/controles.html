@@ -37,23 +37,25 @@ Adicionar dispositivo
 <script>
 const params = new URLSearchParams(window.location.search)
 const house_id = params.get("house_id")
+const user_id = params.get("user_id")
 
-async function carregarEstados() {
-    const res = await fetch(`/api/devices?house_id=${house_id}`)
-    const devices = await res.json()
+async function toggle(id) {
+    const res = await fetch(
+        `/device/${id}/toggle?house_id=${house_id}&user_id=${user_id}`,
+        { method: "POST" }
+    )
 
-    devices.forEach(d => {
-        const btn = document.getElementById("btn-" + d.id)
-        if (!btn) return
+    const data = await res.json()
 
-        if (d.state) {
-            btn.classList.add("on")
-            btn.innerText = "Ligado"
-        } else {
-            btn.classList.remove("on")
-            btn.innerText = "Desligado"
-        }
-    })
+    const btn = document.getElementById("btn-" + id)
+
+    if (data.state) {
+        btn.classList.add("on")
+        btn.innerText = "Ligado"
+    } else {
+        btn.classList.remove("on")
+        btn.innerText = "Desligado"
+    }
 }
 
 async function toggle(id) {
