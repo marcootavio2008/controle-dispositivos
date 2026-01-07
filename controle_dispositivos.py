@@ -211,18 +211,16 @@ def save_device():
 
 @app.route("/device/<int:device_id>/toggle", methods=["POST"])
 def toggle_device(device_id):
-    ctx = get_context()
-    if not ctx:
-        return jsonify({"error": "contexto inválido"}), 400
 
-    _, house_id = ctx
+    house_id = request.args.get("house_id", type=int)
+    if not house_id:
+        return jsonify({"error": "house_id ausente"}), 400
 
     device = Device.query.get(device_id)
 
     if not device or device.house_id != house_id:
         return jsonify({"error": "dispositivo inválido"}), 404
 
-    # alterna estado
     device.state = not device.state
     db.session.commit()
 
