@@ -37,10 +37,9 @@ class Device(db.Model):
     name = db.Column(db.String(100), nullable=False)
     device_type = db.Column(db.String(50), nullable=False)
     config = db.Column(db.JSON, default={})
-    house_id = db.Column(db.Integer, db.ForeignKey("house.id"), nullable=False)
-    
-    # ADICIONE esta linha:
-    user_id = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=False)
+    house_id = db.Column(db.Integer, db.ForeignKey("houses.id"), nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False)
+
 
 with app.app_context():
     db.create_all()
