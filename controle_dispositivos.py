@@ -1,51 +1,65 @@
 from flask import Flask, render_template, request, jsonify
 from flask_sock import Sock
 from flask_sqlalchemy import SQLAlchemy
-import os
-from flask import session
 from sqlalchemy.dialects.postgresql import JSONB
+import os
 import json
 
 app = Flask(__name__)
 sock = Sock(app)
-app.secret_key = "controle123"
 
 app.config["SQLALCHEMY_DATABASE_URI"] = os.environ.get("DATABASE_URL")
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 
 db = SQLAlchemy(app)
 
-def get_current_user():
-    if "user_id" not in session:
+# ===============================
+# MODELOS
+# ===============================
+
+class Device(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(100), nullable=False)
+    device_type = db.Column(db.String(50), nullable=False)
+    config = db.Column(JSONB)
+    house_id = db.Column(db.Integer, nullable=False)
+    user_id = db.Column(db.Integer, nullable=False)
+
+
+# ===============================
+# CONTEXTO (QUERY STRING)
+# ===============================
+
+def get_context():
+    user_id = request.args.get("user_id", type=int)
+    house_id = request.args.get("house_id", type=int)
+
+    if not user_id or not house_id:
         return None
 
-    return {
-        "id": session["user_id"],
-        "role": session.get("role", "user"),
-        "house_id": session.get("house_id")
-    }
+    return user_id, house_id
 
 
-connections = {}  # { house_id: set(ws) }
+# ===============================
+# WEBSOCKET
+# ===============================
+
+connections = {}
 
 @sock.route("/ws")
 def ws_endpoint(ws):
-    house_id = request.args.get("house_id")
+    house_id = request.args.get("house_id", type=int)
 
     if not house_id:
         ws.close()
         return
 
-    house_id = int(house_id)
-
     connections.setdefault(house_id, set()).add(ws)
-
     print(f"[WS] Client conectado | house_id={house_id}")
 
     try:
         while True:
-            msg = ws.receive()
-            if msg is None:
+            if ws.receive() is None:
                 break
     finally:
         connections[house_id].discard(ws)
@@ -70,7 +84,6 @@ def enviar_comando_para_casa(house_id, comando):
         except:
             mortos.add(ws)
 
-    # limpa conexões mortas
     for ws in mortos:
         clients.discard(ws)
 
@@ -78,81 +91,76 @@ def enviar_comando_para_casa(house_id, comando):
     return True
 
 
-@app.route("/controle_luz")
-def controle_luz():
-    user = get_current_user()
-    if not user:
-        return jsonify({"error": "não autenticado"}), 401
+# ===============================
+# ROTAS
+# ===============================
 
-    acao = request.args.get("acao")
+@app.route("/")
+def home():
+    ctx = get_context()
+    if not ctx:
+        return "Contexto inválido", 400
 
-    if acao == "ligar":
-        ok = enviar_comando_para_usuario(
-            user["id"],
-            "LIGAR_LUZ"
-        )
-        return jsonify({"status": ok})
+    _, house_id = ctx
 
-    elif acao == "desligar":
-        ok = enviar_comando_para_usuario(
-            user["id"],
-            "DESLIGAR_LUZ"
-        )
-        return jsonify({"status": ok})
+    devices = Device.query.filter_by(house_id=house_id).all()
 
-    return jsonify({"error": "ação inválida"}), 400
-
-@app.route("/api/houses")
-def list_houses():
-    user = get_current_user()
-    if not user:
-        return jsonify([])
-
-    houses = House.query.filter_by(owner_id=user["id"]).all()
-
-    return jsonify([
-        {
-            "id": h.id,
-            "name": h.name
-        } for h in houses
-    ])
+    return render_template(
+        "controles.html",
+        devices=devices,
+        house_id=house_id
+    )
 
 
-@app.route('/add_dispositivo')
+@app.route("/add_dispositivo")
 def add_dispositivo():
-    user = get_current_user()
-    if not user:
-        return "Usuário não identificado", 401
+    ctx = get_context()
+    if not ctx:
+        return "Contexto inválido", 400
 
-    return render_template("add.html", user=user)
+    user_id, house_id = ctx
+    return render_template(
+        "add.html",
+        user_id=user_id,
+        house_id=house_id
+    )
+
 
 @app.route("/api/devices", methods=["POST"])
 def save_device():
-    user = get_current_user()
+    ctx = get_context()
+    if not ctx:
+        return jsonify({"error": "contexto inválido"}), 400
+
+    user_id, house_id = ctx
+    data = request.json
 
     device = Device(
         name=data["name"],
         device_type=data["device_type"],
-        config=data["config"],
-        house_id=session["house_id"]
+        config=data.get("config", {}),
+        house_id=house_id,
+        user_id=user_id
     )
 
     db.session.add(device)
     db.session.commit()
+
     return jsonify({"status": "ok"})
+
 
 @app.route("/device/<int:device_id>/toggle", methods=["POST"])
 def toggle_device(device_id):
-    user = get_current_user()
-    if not user:
-        return jsonify({"error": "usuário não identificado"}), 401
+    ctx = get_context()
+    if not ctx:
+        return jsonify({"error": "contexto inválido"}), 400
+
+    _, house_id = ctx
 
     device = Device.query.get(device_id)
-    if not device:
-        return jsonify({"error": "dispositivo não encontrado"}), 404
 
-    if user["role"] != "admin" and device.user_id != user["id"]:
-        return jsonify({"error": "acesso negado"}), 403
+    if not device or device.house_id != house_id:
+        return jsonify({"error": "dispositivo inválido"}), 404
 
     comando = json.dumps({
         "action": "toggle",
@@ -161,25 +169,28 @@ def toggle_device(device_id):
         "config": device.config
     })
 
-    ok = enviar_comando_para_casa(device.house_id, comando)
+    ok = enviar_comando_para_casa(house_id, comando)
 
     if not ok:
         return jsonify({"error": "Casa offline"}), 503
 
     return jsonify({"status": "ok"})
 
+
 @app.route("/api/devices/<int:device_id>", methods=["DELETE"])
 def delete_device(device_id):
-    user = get_current_user()
-    if not user:
-        return jsonify({"error": "usuário não identificado"}), 401
+    ctx = get_context()
+    if not ctx:
+        return jsonify({"error": "contexto inválido"}), 400
+
+    user_id, house_id = ctx
 
     device = Device.query.get(device_id)
-    if not device:
-        return jsonify({"error": "dispositivo não encontrado"}), 404
 
-    # 🔒 Permissão
-    if user["role"] != "admin" and device.user_id != user["id"]:
+    if not device or device.house_id != house_id:
+        return jsonify({"error": "dispositivo inválido"}), 404
+
+    if device.user_id != user_id:
         return jsonify({"error": "acesso negado"}), 403
 
     db.session.delete(device)
@@ -187,23 +198,10 @@ def delete_device(device_id):
 
     return jsonify({"status": "dispositivo removido"})
 
-@app.route("/")
-def home():
-    user = get_current_user()
 
-    if not user or not user["house_id"]:
-        return "Casa não selecionada", 400
-
-    devices = Device.query.filter_by(
-        house_id=user["house_id"]
-    ).all()
-
-    return render_template(
-        "controles.html",
-        devices=devices
-    )
-
-
+# ===============================
+# MAIN
+# ===============================
 
 if __name__ == "__main__":
-    app.run(host='0.0.0.0', port=8000)
+    app.run(host="0.0.0.0", port=8000)
