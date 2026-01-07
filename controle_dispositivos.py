@@ -133,9 +133,10 @@ def home():
     return render_template(
         "controles.html",
         devices=devices,
-        user=user,
+        user_id=user_id,
         house_id=house_id
     )
+
 
 
 
