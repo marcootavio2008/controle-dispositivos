@@ -59,6 +59,7 @@ def get_context():
     return user_id, house_id
 
 
+
 # ===============================
 # WEBSOCKET
 # ===============================
@@ -116,20 +117,25 @@ def enviar_comando_para_casa(house_id, comando):
 
 @app.route("/")
 def home():
-    user_id = request.args.get("user_id", type=int)
-    house_id = request.args.get("house_id", type=int)
+    ctx = get_context()
+    if not ctx:
+        return "Contexto inválido", 400
 
-    if not user_id or not house_id:
-        return "user_id ou house_id não informado", 400
+    user_id, house_id = ctx
 
     devices = Device.query.filter_by(house_id=house_id).all()
 
     user = {
         "id": user_id,
-        "role": "user"  # ou admin se quiser tratar depois
+        "role": "user"
     }
 
-    return render_template("controles.html", devices=devices, user=user)
+    return render_template(
+        "controles.html",
+        devices=devices,
+        user=user,
+        house_id=house_id
+    )
 
 
 
@@ -145,6 +151,7 @@ def add_dispositivo():
         user_id=user_id,
         house_id=house_id
     )
+
 
 
 @app.route("/api/devices", methods=["POST"])
