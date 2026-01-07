@@ -27,7 +27,12 @@
         <option value="arduino">Arduino</option>
         <option value="tuya">Lâmpada wifi</option>
     </select>
+    <label>Casa</label>
+    <select id="house_id">
+    <option value="">Selecione a casa</option>
+    </select>
 </div>
+
 
 <!-- LAN -->
 <div class="field device-config" id="config-lan">
@@ -55,6 +60,19 @@
 </div>
 
 <script>
+fetch("/api/houses")
+  .then(r => r.json())
+  .then(houses => {
+      const select = document.getElementById("house_id");
+
+      houses.forEach(h => {
+          const opt = document.createElement("option");
+          opt.value = h.id;
+          opt.textContent = `${h.name} (ID ${h.id})`;
+          select.appendChild(opt);
+      });
+  });
+
 document.addEventListener('DOMContentLoaded', () => {
     const select = document.getElementById('device-type');
     const configs = document.querySelectorAll('.device-config');
@@ -70,10 +88,15 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 });
 
-
 document.querySelector('.add-btn').addEventListener('click', () => {
     const name = document.getElementById('device-name').value;
     const type = document.getElementById('device-type').value;
+    const house_id = document.getElementById("house_id").value;
+
+    if (!name || !type || !house_id) {
+        alert("Preencha nome, tipo e casa");
+        return;
+    }
 
     let config = {};
 
@@ -97,13 +120,13 @@ document.querySelector('.add-btn').addEventListener('click', () => {
         body: JSON.stringify({
             name,
             device_type: type,
-            trigger: "toggle",
+            house_id,
             config
         })
-    }).then(res => res.json())
-      .then(() => window.location.href = "/");
+    })
+    .then(res => res.json())
+    .then(() => window.location.href = "/");
 });
-
-
 </script>
+
 {% endblock %}
