@@ -116,17 +116,15 @@ def enviar_comando_para_casa(house_id, comando):
 
 @app.route("/")
 def home():
-    ctx = get_context()
-    if not ctx:
-        return "Contexto inválido", 400
+    user_id = request.args.get("user_id", type=int)
+    house_id = request.args.get("house_id", type=int)
 
-    house_id = ctx
+    if not house_id:
+        return "house_id não informado", 400
+
     devices = Device.query.filter_by(house_id=house_id).all()
-    return render_template(
-        "controles.html",
-        devices=devices,
-        house_id=house_id
-    )
+    return render_template("controles.html", devices=devices)
+
 
 
 @app.route("/add_dispositivo")
