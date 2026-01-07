@@ -57,6 +57,9 @@
 </div>
     <button class="add-btn">Adicionar</button>
 </div>
+
+
+
 <script>
 document.addEventListener('DOMContentLoaded', () => {
     const select = document.getElementById('device-type');
@@ -71,47 +74,59 @@ document.addEventListener('DOMContentLoaded', () => {
             if (active) active.style.display = 'block';
         }
     });
-});
 
-document.querySelector('.add-btn').addEventListener('click', () => {
-    const name = document.getElementById('device-name').value;
-    const type = document.getElementById('device-type').value;
-    const house_id = document.getElementById("house_id").value;
+    document.querySelector('.add-btn').addEventListener('click', () => {
+        const name = document.getElementById('device-name').value;
+        const type = document.getElementById('device-type').value;
+        const house_id = document.getElementById("house_id").value;
 
-    if (!name || !type || !house_id) {
-        alert("Preencha nome, tipo e casa");
-        return;
-    }
+        if (!name || !type || !house_id) {
+            alert("Preencha nome, tipo e casa");
+            return;
+        }
 
-    let config = {};
+        let config = {};
 
-    if (type === "lan") {
-        config.mac = document.querySelector('#config-lan input').value;
-    }
+        if (type === "lan") {
+            config.mac = document.querySelector('#config-lan input').value;
+        }
 
-    if (type === "arduino") {
-        const inputs = document.querySelectorAll('#config-arduino input');
-        config.port = inputs[0].value;
-        config.pin = inputs[1].value;
-    }
+        if (type === "arduino") {
+            const inputs = document.querySelectorAll('#config-arduino input');
+            config.port = inputs[0].value;
+            config.pin = inputs[1].value;
+        }
 
-    if (type === "tuya") {
-        config.ip = document.querySelector('#config-tuya input').value;
-    }
+        if (type === "tuya") {
+            config.ip = document.querySelector('#config-tuya input').value;
+        }
 
-    fetch('/api/devices', {
-        method: 'POST',
-        headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({
-            name,
-            device_type: type,
-            house_id,
-            config
+        // mantém user_id e house_id na URL
+        const params = new URLSearchParams(window.location.search);
+
+        fetch(`/api/devices?${params.toString()}`, {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({
+                name,
+                device_type: type,
+                config
+            })
         })
-    })
-    .then(res => res.json())
-    .then(() => window.location.href = "/");
+        .then(res => {
+            if (!res.ok) throw new Error("Erro ao salvar dispositivo");
+            return res.json();
+        })
+        .then(() => {
+            window.location.href = `/?${params.toString()}`;
+        })
+        .catch(err => {
+            console.error(err);
+            alert("Erro ao adicionar dispositivo");
+        });
+    });
 });
 </script>
+
 
 {% endblock %}
