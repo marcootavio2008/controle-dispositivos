@@ -151,6 +151,24 @@ def add_dispositivo():
 
     return render_template("add.html", user=user)
 
+@app.route("/api/houses", methods=["POST"])
+def create_house():
+    user = get_current_user()
+    if not user:
+        return jsonify({"error": "não autorizado"}), 401
+
+    data = request.json
+
+    house = House(
+        name=data["name"],
+        owner_id=user["id"]
+    )
+
+    db.session.add(house)
+    db.session.commit()
+
+    return jsonify({"status": "ok", "house_id": house.id})
+
 
 @app.route("/api/devices", methods=["POST"])
 def save_device():
