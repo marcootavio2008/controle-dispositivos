@@ -25,18 +25,31 @@ class User(db.Model):
     password = db.Column(db.String(120), nullable=False)
     role = db.Column(db.String(20), default="user")
     
+    # Foreign key para a casa do usuário
+    house_id = db.Column(db.Integer, db.ForeignKey("houses.id"), nullable=True)
+    
+    # Relacionamento explícito
+    house = db.relationship("House", foreign_keys=[house_id], backref="users")
+
 class House(db.Model):
     __tablename__ = "houses"
 
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(120), nullable=False)
+    
+    # Dono da casa (um usuário)
     owner_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False)
+    
+    # Relacionamento explícito
+    owner = db.relationship("User", foreign_keys=[owner_id], backref="owned_houses")
 
 class Device(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(100), nullable=False)
     device_type = db.Column(db.String(50), nullable=False)
     config = db.Column(db.JSON, default={})
+    
+    # Conserta a referência correta da tabela
     house_id = db.Column(db.Integer, db.ForeignKey("houses.id"), nullable=False)
     user_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False)
 
