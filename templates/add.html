@@ -27,10 +27,6 @@
         <option value="arduino">Arduino</option>
         <option value="tuya">Lâmpada wifi</option>
     </select>
-    <label>Casa</label>
-    <select id="house_id">
-    <option value="">Selecione a casa</option>
-    </select>
 </div>
 
 
@@ -60,19 +56,6 @@
 </div>
 
 <script>
-fetch("/api/houses")
-  .then(r => r.json())
-  .then(houses => {
-      const select = document.getElementById("house_id");
-
-      houses.forEach(h => {
-          const opt = document.createElement("option");
-          opt.value = h.id;
-          opt.textContent = `${h.name} (ID ${h.id})`;
-          select.appendChild(opt);
-      });
-  });
-
 document.addEventListener('DOMContentLoaded', () => {
     const select = document.getElementById('device-type');
     const configs = document.querySelectorAll('.device-config');
