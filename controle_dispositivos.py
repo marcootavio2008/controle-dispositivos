@@ -119,11 +119,17 @@ def home():
     user_id = request.args.get("user_id", type=int)
     house_id = request.args.get("house_id", type=int)
 
-    if not house_id:
-        return "house_id não informado", 400
+    if not user_id or not house_id:
+        return "user_id ou house_id não informado", 400
 
     devices = Device.query.filter_by(house_id=house_id).all()
-    return render_template("controles.html", devices=devices)
+
+    user = {
+        "id": user_id,
+        "role": "user"  # ou admin se quiser tratar depois
+    }
+
+    return render_template("controles.html", devices=devices, user=user)
 
 
 
