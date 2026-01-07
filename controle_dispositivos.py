@@ -44,12 +44,12 @@ class House(db.Model):
     owner = db.relationship("User", foreign_keys=[owner_id], backref="owned_houses")
 
 class Device(db.Model):
+    __tablename__ = "devices"
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(100), nullable=False)
     device_type = db.Column(db.String(50), nullable=False)
+    state = db.Column(db.Boolean, default=False)  # 🔥 ESTADO SALVO
     config = db.Column(db.JSON, default={})
-    
-    # Conserta a referência correta da tabela
     house_id = db.Column(db.Integer, db.ForeignKey("houses.id"), nullable=False)
     user_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False)
 
@@ -167,7 +167,7 @@ def add_dispositivo():
 
 @app.route("/api/devices")
 def get_devices():
-    house_id = request.args.get("house_id")
+    house_id = request.args.get("house_id", type=int)
 
     devices = Device.query.filter_by(house_id=house_id).all()
 
@@ -178,6 +178,7 @@ def get_devices():
             "state": d.state
         } for d in devices
     ])
+
 
 @app.route("/api/devices/<int:id>/state", methods=["POST"])
 def set_device_state(id):
@@ -222,26 +223,30 @@ def toggle_device(device_id):
         return jsonify({"error": "contexto inválido"}), 400
 
     _, house_id = ctx
+    data = request.json
+    state = data.get("state")
 
     device = Device.query.get(device_id)
 
     if not device or device.house_id != house_id:
         return jsonify({"error": "dispositivo inválido"}), 404
 
+    # ✅ SALVA NO BANCO
+    device.state = bool(state)
+    db.session.commit()
+
+    # ✅ ENVIA PRO ARDUINO / CLIENTE WS
     comando = json.dumps({
-        "action": "toggle",
+        "action": "set",
         "device_id": device.id,
+        "state": device.state,
         "type": device.device_type,
         "config": device.config
     })
 
-    ok = enviar_comando_para_casa(house_id, comando)
+    enviar_comando_para_casa(house_id, comando)
 
-    if not ok:
-        return jsonify({"error": "Casa offline"}), 503
-
-    return jsonify({"status": "ok"})
-
+    return jsonify({"status": "ok", "state": device.state})
 
 @app.route("/api/devices/<int:device_id>", methods=["DELETE"])
 def delete_device(device_id):
