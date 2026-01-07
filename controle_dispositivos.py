@@ -10,6 +10,10 @@ sock = Sock(app)
 
 app.config["SQLALCHEMY_DATABASE_URI"] = os.environ.get("DATABASE_URL")
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
+app.config["SQLALCHEMY_ENGINE_OPTIONS"] = {
+    "pool_pre_ping": True,
+    "pool_recycle": 300,
+}
 
 db = SQLAlchemy(app)
 
@@ -24,32 +28,32 @@ class User(db.Model):
     username = db.Column(db.String(80), unique=True, nullable=False)
     password = db.Column(db.String(120), nullable=False)
     role = db.Column(db.String(20), default="user")
-    
-    # Foreign key para a casa do usuário
-    house_id = db.Column(db.Integer, db.ForeignKey("houses.id"), nullable=True)
-    
-    # Relacionamento explícito
+
+    house_id = db.Column(db.Integer, db.ForeignKey("houses.id"))
     house = db.relationship("House", foreign_keys=[house_id], backref="users")
+
 
 class House(db.Model):
     __tablename__ = "houses"
 
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(120), nullable=False)
-    
-    # Dono da casa (um usuário)
+
     owner_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False)
-    
-    # Relacionamento explícito
     owner = db.relationship("User", foreign_keys=[owner_id], backref="owned_houses")
 
+
 class Device(db.Model):
-    __tablename__ = "devices"
+    __tablename__ = "device"
+
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(100), nullable=False)
     device_type = db.Column(db.String(50), nullable=False)
-    state = db.Column(db.Boolean, default=False)  # 🔥 ESTADO SALVO
+
+    state = db.Column(db.Boolean, default=False)  # <<< ESTADO SALVO
+
     config = db.Column(db.JSON, default={})
+
     house_id = db.Column(db.Integer, db.ForeignKey("houses.id"), nullable=False)
     user_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False)
 
@@ -137,20 +141,12 @@ def home():
 
     devices = Device.query.filter_by(house_id=house_id).all()
 
-    user = {
-        "id": user_id,
-        "role": "user"
-    }
-
     return render_template(
         "controles.html",
         devices=devices,
         user_id=user_id,
         house_id=house_id
     )
-
-
-
 
 @app.route("/add_dispositivo")
 def add_dispositivo():
@@ -179,7 +175,6 @@ def get_devices():
         } for d in devices
     ])
 
-
 @app.route("/api/devices/<int:id>/state", methods=["POST"])
 def set_device_state(id):
     data = request.json
@@ -188,8 +183,6 @@ def set_device_state(id):
     device = Device.query.get_or_404(id)
     device.state = state
     db.session.commit()
-
-    # aqui você também pode mandar pro Arduino
 
     return jsonify({"ok": True})
 
@@ -223,19 +216,16 @@ def toggle_device(device_id):
         return jsonify({"error": "contexto inválido"}), 400
 
     _, house_id = ctx
-    data = request.json
-    state = data.get("state")
 
     device = Device.query.get(device_id)
 
     if not device or device.house_id != house_id:
         return jsonify({"error": "dispositivo inválido"}), 404
 
-    # ✅ SALVA NO BANCO
-    device.state = bool(state)
+    # alterna estado
+    device.state = not device.state
     db.session.commit()
 
-    # ✅ ENVIA PRO ARDUINO / CLIENTE WS
     comando = json.dumps({
         "action": "set",
         "device_id": device.id,
@@ -246,7 +236,7 @@ def toggle_device(device_id):
 
     enviar_comando_para_casa(house_id, comando)
 
-    return jsonify({"status": "ok", "state": device.state})
+    return jsonify({"state": device.state})
 
 @app.route("/api/devices/<int:device_id>", methods=["DELETE"])
 def delete_device(device_id):
