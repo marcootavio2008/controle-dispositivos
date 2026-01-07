@@ -15,41 +15,20 @@ app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 
 db = SQLAlchemy(app)
 
-class House(db.Model):
-    __tablename__ = "houses"
-
-    id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(120), nullable=False)
-
-    owner_id = db.Column(db.Integer, nullable=False)
-
-
-class Device(db.Model):
-    __tablename__ = "devices"
-
-    id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(120), nullable=False)
-    device_type = db.Column(db.String(20), nullable=False)
-    config = db.Column(db.JSON, nullable=False)
-
-    user_id = db.Column(db.Integer, nullable=False)
-    house_id = db.Column(db.Integer, nullable=False)
-
-with app.app_context():
-    db.create_all()
-
 def get_current_user():
     if "user_id" not in session:
         return None
 
     return {
         "id": session["user_id"],
-        "role": session.get("role", "user")
+        "role": session.get("role", "user"),
+        "house_id": session.get("house_id")
     }
+
 
 connections = {}  # { house_id: set(ws) }
 
-@sock.route('/ws')
+@sock.route("/ws")
 def ws_endpoint(ws):
     house_id = request.args.get("house_id")
 
@@ -59,10 +38,7 @@ def ws_endpoint(ws):
 
     house_id = int(house_id)
 
-    if house_id not in connections:
-        connections[house_id] = set()
-
-    connections[house_id].add(ws)
+    connections.setdefault(house_id, set()).add(ws)
 
     print(f"[WS] Client conectado | house_id={house_id}")
 
@@ -73,7 +49,6 @@ def ws_endpoint(ws):
                 break
     finally:
         connections[house_id].discard(ws)
-
         if not connections[house_id]:
             del connections[house_id]
 
@@ -151,25 +126,6 @@ def add_dispositivo():
 
     return render_template("add.html", user=user)
 
-@app.route("/api/houses", methods=["POST"])
-def create_house():
-    user = get_current_user()
-    if not user:
-        return jsonify({"error": "não autorizado"}), 401
-
-    data = request.json
-
-    house = House(
-        name=data["name"],
-        owner_id=user["id"]
-    )
-
-    db.session.add(house)
-    db.session.commit()
-
-    return jsonify({"status": "ok", "house_id": house.id})
-
-
 @app.route("/api/devices", methods=["POST"])
 def save_device():
     user = get_current_user()
@@ -233,18 +189,20 @@ def delete_device(device_id):
 
 @app.route("/")
 def home():
-    house_id = request.args.get("house_id")
+    user = get_current_user()
 
-    if not house_id:
+    if not user or not user["house_id"]:
         return "Casa não selecionada", 400
 
-    devices = Device.query.filter_by(house_id=house_id).all()
+    devices = Device.query.filter_by(
+        house_id=user["house_id"]
+    ).all()
 
     return render_template(
         "controles.html",
-        devices=devices,
-        house_id=house_id
+        devices=devices
     )
+
 
 
 if __name__ == "__main__":
