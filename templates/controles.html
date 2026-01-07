@@ -10,6 +10,7 @@
     <div class="device-actions">
         <label class="switch">
             <input type="checkbox"
+                   {% if d.state %}checked{% endif %}
                    onchange="toggleDevice({{ d.id }}, this)">
             <span class="slider"></span>
         </label>
@@ -29,17 +30,16 @@ Adicionar dispositivo
 </button>
 </div>
 
-
 <script>
 function toggleDevice(deviceId, checkbox) {
-    const action = checkbox.checked ? "ligar" : "desligar";
+    const state = checkbox.checked;
 
     const params = new URLSearchParams(window.location.search);
 
     fetch(`/device/${deviceId}/toggle?${params.toString()}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ action })
+        body: JSON.stringify({ state })
     })
     .then(res => {
         if (!res.ok) throw new Error("Erro ao enviar comando");
@@ -47,6 +47,7 @@ function toggleDevice(deviceId, checkbox) {
     })
     .catch(err => {
         console.error(err);
+        alert("Erro ao comunicar com o servidor");
         checkbox.checked = !checkbox.checked;
     });
 }
@@ -64,7 +65,6 @@ function deleteDevice(deviceId) {
         location.reload();
     });
 }
-
 </script>
 
 {% endblock %}
