@@ -47,21 +47,24 @@ def get_current_user():
         "role": session.get("role", "user")
     }
 
-connections = {}  # { user_id: ws }
-
+connections = {}  # { house_id: set(ws) }
 
 @sock.route('/ws')
 def ws_endpoint(ws):
-    user_id = request.args.get("user_id")
+    house_id = request.args.get("house_id")
 
-    if not user_id:
+    if not house_id:
         ws.close()
         return
 
-    user_id = int(user_id)
-    connections[user_id] = ws
+    house_id = int(house_id)
 
-    print(f"[WS] PC conectado | user_id={user_id}")
+    if house_id not in connections:
+        connections[house_id] = set()
+
+    connections[house_id].add(ws)
+
+    print(f"[WS] Client conectado | house_id={house_id}")
 
     try:
         while True:
@@ -69,24 +72,36 @@ def ws_endpoint(ws):
             if msg is None:
                 break
     finally:
-        connections.pop(user_id, None)
-        print(f"[WS] PC desconectado | user_id={user_id}")
+        connections[house_id].discard(ws)
+
+        if not connections[house_id]:
+            del connections[house_id]
+
+        print(f"[WS] Client desconectado | house_id={house_id}")
 
 
-def enviar_comando(user_id, comando):
-    ws = connections.get(user_id)
+def enviar_comando_para_casa(house_id, comando):
+    clients = connections.get(house_id)
 
-    if not ws:
-        print(f"[WS] Nenhum PC conectado para user_id={user_id}")
+    if not clients:
+        print(f"[WS] Nenhum client conectado | house_id={house_id}")
         return False
 
-    try:
-        ws.send(comando)
-        print(f"[CMD] Enviado para user_id={user_id}")
-        return True
-    except:
-        connections.pop(user_id, None)
-        return False
+    mortos = set()
+
+    for ws in clients:
+        try:
+            ws.send(comando)
+        except:
+            mortos.add(ws)
+
+    # limpa conexões mortas
+    for ws in mortos:
+        clients.discard(ws)
+
+    print(f"[CMD] Enviado para house_id={house_id}")
+    return True
+
 
 @app.route("/controle_luz")
 def controle_luz():
@@ -171,10 +186,10 @@ def toggle_device(device_id):
         "config": device.config
     })
 
-    ok = enviar_comando(user["id"], comando)
+    ok = enviar_comando_para_casa(device.house_id, comando)
 
     if not ok:
-        return jsonify({"error": "PC offline"}), 503
+        return jsonify({"error": "Casa offline"}), 503
 
     return jsonify({"status": "ok"})
 
