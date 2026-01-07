@@ -165,6 +165,33 @@ def add_dispositivo():
         house_id=house_id
     )
 
+@app.route("/api/devices")
+def get_devices():
+    house_id = request.args.get("house_id")
+
+    devices = Device.query.filter_by(house_id=house_id).all()
+
+    return jsonify([
+        {
+            "id": d.id,
+            "name": d.name,
+            "state": d.state
+        } for d in devices
+    ])
+
+@app.route("/api/devices/<int:id>/state", methods=["POST"])
+def set_device_state(id):
+    data = request.json
+    state = data.get("state")
+
+    device = Device.query.get_or_404(id)
+    device.state = state
+    db.session.commit()
+
+    # aqui você também pode mandar pro Arduino
+
+    return jsonify({"ok": True})
+
 
 @app.route("/api/devices", methods=["POST"])
 def save_device():
