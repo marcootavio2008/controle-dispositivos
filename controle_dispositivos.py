@@ -156,26 +156,25 @@ def add_dispositivo():
 
 @app.route("/api/devices", methods=["POST"])
 def save_device():
-    ctx = get_context()
-    if not ctx:
-        return jsonify({"error": "contexto inválido"}), 400
-
-    user_id, house_id = ctx
     data = request.json
+
+    user_id = data.get("user_id")
+    house_id = data.get("house_id")
+
+    if not user_id or not house_id:
+        return jsonify({"error": "contexto inválido"}), 400
 
     device = Device(
         name=data["name"],
         device_type=data["device_type"],
         config=data.get("config", {}),
-        house_id=house_id,
-        user_id=user_id
+        house_id=house_id
     )
 
     db.session.add(device)
     db.session.commit()
 
     return jsonify({"status": "ok"})
-
 
 @app.route("/device/<int:device_id>/toggle", methods=["POST"])
 def toggle_device(device_id):
