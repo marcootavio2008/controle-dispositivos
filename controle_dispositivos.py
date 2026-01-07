@@ -15,12 +15,25 @@ app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 
 db = SQLAlchemy(app)
 
+class House(db.Model):
+    __tablename__ = "houses"
+
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(120), nullable=False)
+
+    owner_id = db.Column(db.Integer, nullable=False)
+
+
 class Device(db.Model):
+    __tablename__ = "devices"
+
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(120), nullable=False)
     device_type = db.Column(db.String(20), nullable=False)
     config = db.Column(db.JSON, nullable=False)
+
     user_id = db.Column(db.Integer, nullable=False)
+    house_id = db.Column(db.Integer, nullable=False)
 
 with app.app_context():
     db.create_all()
@@ -99,6 +112,22 @@ def controle_luz():
 
     return jsonify({"error": "ação inválida"}), 400
 
+@app.route("/api/houses")
+def list_houses():
+    user = get_current_user()
+    if not user:
+        return jsonify([])
+
+    houses = House.query.filter_by(owner_id=user["id"]).all()
+
+    return jsonify([
+        {
+            "id": h.id,
+            "name": h.name
+        } for h in houses
+    ])
+
+
 @app.route('/add_dispositivo')
 def add_dispositivo():
     user = get_current_user()
@@ -108,24 +137,18 @@ def add_dispositivo():
     return render_template("add.html", user=user)
 
 
-@app.route('/api/devices', methods=['POST'])
+@app.route("/api/devices", methods=["POST"])
 def save_device():
-    user = get_current_user()
-    if not user:
-        return jsonify({"error": "usuário não identificado"}), 401
-
     data = request.json
-
     device = Device(
-        name=data["name"],
-        device_type=data["device_type"],
-        config=data["config"],
-        user_id=user["id"]
-    )
-
+    name=data["name"],
+    device_type=data["device_type"],
+    config=data["config"],
+    user_id=user["id"],
+    house_id=data["house_id"]
+)
     db.session.add(device)
     db.session.commit()
-
     return jsonify({"status": "ok"})
 
 @app.route("/device/<int:device_id>/toggle", methods=["POST"])
@@ -174,33 +197,21 @@ def delete_device(device_id):
 
     return jsonify({"status": "dispositivo removido"})
 
-@app.route('/')
+@app.route("/")
 def home():
-    user_id = request.args.get("user_id")
-    role = request.args.get("role", "user")
+    house_id = request.args.get("house_id")
 
-    if user_id:
-        session["user_id"] = int(user_id)
-        session["role"] = role
+    if not house_id:
+        return "Casa não selecionada", 400
 
-    if "user_id" not in session:
-        return "Usuário não identificado", 401
-
-    if session["role"] == "admin":
-        devices = Device.query.all()
-    else:
-        devices = Device.query.filter_by(
-            user_id=session["user_id"]
-        ).all()
+    devices = Device.query.filter_by(house_id=house_id).all()
 
     return render_template(
-        'controles.html',
+        "controles.html",
         devices=devices,
-        user={
-            "id": session["user_id"],
-            "role": session["role"]
-        }
+        house_id=house_id
     )
+
 
 if __name__ == "__main__":
     app.run(host='0.0.0.0', port=8000)
