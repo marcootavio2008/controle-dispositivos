@@ -363,14 +363,14 @@ body::before {
     font-weight: 500;
     box-shadow: 0 0 15px rgba(123, 63, 242, 0.4);
 }
-.btn-delete{
-background: linear-gradient(135deg, #820526, #61051d);
+.btn-delete {
+    background: linear-gradient(135deg, #820526, #61051d);
     color: white;
     border: none;
-    padding: 14px 22px;
+    padding: 10px 22px;
     margin: 6px;
     border-radius: 14px;
     cursor: pointer;
     font-weight: 500;
-    box-shadow: 0 0 15px rgba(123, 6, 2, 0.4);
+    box-shadow: 0 0 15px rgb(123 6 2 / 40%);
 }
